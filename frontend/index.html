@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <title>MovieRate — статистика</title>
+  <style>
+    :root{--bg:#f3f6fb;--card:#fff;--text:#172033;--muted:#667085;--primary:#2456d8;--primary-dark:#173fa6;--border:#d8e0ef;--success:#0f9f6e;--danger:#dc2626;--warning:#d97706;--shadow:0 12px 28px rgba(17,24,39,.09)}
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:linear-gradient(135deg,#15398d,#2563eb);color:white;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;box-shadow:var(--shadow)}
+    .brand h2{margin:0;font-size:28px}.brand span{opacity:.85;font-size:13px}nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    nav button{padding:11px 16px;border:0;border-radius:12px;cursor:pointer;font-weight:bold;background:white;color:#172033}nav button:hover{background:#eaf0ff}
+    main{max-width:1200px;margin:26px auto;padding:0 16px 40px}.hero,.card,.movie{background:var(--card);border-radius:22px;box-shadow:var(--shadow)}
+    .hero{padding:28px;display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-bottom:24px}.hero h1{margin:0 0 10px;font-size:34px}.muted{color:var(--muted)}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}.stats-wide{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}.stat{background:#eff6ff;border:1px solid #bfdbfe;border-radius:18px;padding:18px}.stat strong{display:block;font-size:26px;margin-bottom:5px}
+    .toolbar{display:flex;gap:12px;margin:18px 0;flex-wrap:wrap}input,textarea,select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);font:inherit;background:white}textarea{min-height:110px;resize:vertical}.search{flex:1;min-width:240px}
+    .btn{background:var(--primary);color:white;padding:12px 16px;border:0;border-radius:12px;cursor:pointer;font-weight:bold}.btn:hover{background:var(--primary-dark)}.btn-success{background:var(--success)}.btn-danger{background:var(--danger)}.btn-outline{background:white;color:var(--text);border:1px solid var(--border)}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.movie{overflow:hidden;display:flex;flex-direction:column;min-height:335px}.poster{height:220px;background:linear-gradient(135deg,#c7d2fe,#93c5fd);display:flex;align-items:center;justify-content:center;color:#173fa6;font-size:28px;font-weight:900;letter-spacing:1px;text-align:center}.poster img{width:100%;height:100%;object-fit:cover}.movie-content{padding:16px;display:flex;flex-direction:column;gap:9px;flex:1}.movie h3{margin:0;font-size:19px}
+    .badge{display:inline-block;background:#dbeafe;color:#1e40af;padding:6px 10px;border-radius:999px;font-size:13px;font-weight:bold;width:fit-content}.card{padding:22px;margin-top:24px}.details-grid{display:grid;grid-template-columns:260px 1fr;gap:22px}.poster-big{min-height:360px;border-radius:20px;background:linear-gradient(135deg,#bfdbfe,#a5b4fc);display:flex;align-items:center;justify-content:center;color:#173fa6;font-size:42px;font-weight:900;overflow:hidden}.poster-big img{width:100%;height:100%;object-fit:cover}
+    .review{border-top:1px solid #e5e7eb;padding:14px 0}.review-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px;color:var(--muted);font-size:14px}.analysis-box{background:#ecfdf5;border:1px solid #a7f3d0;padding:10px 12px;border-radius:12px;margin-top:8px;line-height:1.6}
+    .status{display:inline-block;padding:5px 9px;color:white;border-radius:999px;font-size:12px;font-weight:bold}.pending{background:var(--warning)}.approved{background:var(--success)}.rejected{background:var(--danger)}
+    .progress{height:12px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:6px}.progress div{height:100%;background:#22c55e}.progress.red div{background:#ef4444}.progress.yellow div{background:#f59e0b}
+    .form-row{display:grid;grid-template-columns:1fr 180px;gap:12px;align-items:start}.hidden{display:none}.message{padding:12px 14px;border-radius:12px;margin:12px 0;display:none}.message.ok{display:block;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}.message.err{display:block;background:#fef2f2;border:1px solid #fecaca;color:#991b1b}.admin-grid,.auth-grid,.profile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.user-panel{background:rgba(255,255,255,.18);padding:8px 12px;border-radius:12px}
+    .tmdb-result{display:grid;grid-template-columns:90px 1fr;gap:14px;align-items:start}.tmdb-result img{width:90px;border-radius:12px}.tmdb-poster-empty{width:90px;height:130px;background:#dbeafe;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#1e40af}
+    @media(max-width:1000px){.grid{grid-template-columns:repeat(2,1fr)}.hero,.details-grid,.stats-wide{grid-template-columns:1fr 1fr}}@media(max-width:620px){header{flex-direction:column;gap:14px}.grid,.form-row,.admin-grid,.auth-grid,.profile-grid,.tmdb-result,.stats-wide{grid-template-columns:1fr}}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<header>
+  <div class="brand"><h2>MovieRate</h2><span>аналіз відгуків і рейтингів для кіноглядачів</span></div>
+  <nav>
+    <span id="userPanel" class="user-panel">Гість</span>
+    <button onclick="showPage('home')">Фільми</button>
+    <button id="profileNav" class="hidden" onclick="showPage('profile')">Мій профіль</button>
+    <button onclick="showPage('analytics')">Статистика</button>
+    <button id="adminNav" class="hidden" onclick="showPage('admin')">Керування фільмами</button>
+    <button id="moderationNav" class="hidden" onclick="showPage('moderation')">Модерація</button>
+    <button onclick="showPage('auth')">Вхід</button>
+    <button onclick="logout()">Вийти</button>
+  </nav>
+</header>
+<main>
+<section id="home"><div class="hero"><div><h1>Система аналізу користувацьких відгуків</h1><p class="muted">Каталог фільмів, постери, відгуки, оцінки, емоційний бал, модерація, статистика й персональні рекомендації.</p><button class="btn" onclick="seedData()">Додати тестові дані</button> <button class="btn" onclick="seedPopularTMDB()">Заповнити TMDb</button> <button class="btn btn-outline" onclick="loadMovies()">Оновити каталог</button><div id="mainMessage" class="message"></div><p class="muted">Тестові акаунти: oleg@example.com / 123456, admin@example.com / 123456, moderator@example.com / 123456</p></div><div class="stats"><div class="stat"><strong id="statMovies">0</strong><span>фільмів</span></div><div class="stat"><strong id="statReviews">0</strong><span>відгуків</span></div><div class="stat"><strong id="statRating">0</strong><span>середній рейтинг</span></div><div class="stat"><strong id="statPending">0</strong><span>на модерації</span></div></div></div>
+<h2>Каталог фільмів</h2><div class="toolbar"><input id="searchInput" class="search" placeholder="Пошук фільму..." oninput="renderMovies()"/><select id="genreFilter" style="max-width:220px" onchange="renderMovies()"><option value="all">Усі жанри</option><option value="Фантастика">Фантастика</option><option value="Драма">Драма</option><option value="Бойовик">Бойовик</option><option value="Трилер">Трилер</option><option value="TMDb">TMDb</option></select></div><div class="grid" id="movies"></div>
+<div class="card hidden" id="movieDetails"><div class="details-grid"><div class="poster-big" id="moviePoster">FILM</div><div><h2 id="movieTitle"></h2><p><span class="badge" id="movieGenre"></span></p><p id="movieDescription"></p><p><strong>Рік:</strong> <span id="movieYear"></span></p><p><strong>Середній рейтинг:</strong> <span id="movieRating"></span></p><h3>Додати відгук</h3><p class="muted" id="reviewUserInfo">Увійдіть у систему, щоб залишити відгук.</p><textarea id="reviewText" placeholder="Наприклад: Чудовий і атмосферний фільм, дуже рекомендую."></textarea><div class="form-row"><select id="rating"><option value="10">10</option><option value="9">9</option><option value="8">8</option><option value="7">7</option><option value="6">6</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select><button class="btn" onclick="addReview()">Надіслати</button></div><div id="reviewMessage" class="message"></div></div></div><h3>Відгуки користувачів</h3><div id="reviews"></div></div></section>
+<section id="analytics" class="hidden"><div class="card"><h2>Статистика аналізу відгуків</h2><p class="muted">Цей блок показує результати роботи модуля аналізу тональності.</p><button class="btn btn-outline" onclick="loadAnalytics()">Оновити статистику</button><div class="stats-wide"><div class="stat"><strong id="analyticsTotal">0</strong><span>усього відгуків</span></div><div class="stat"><strong id="analyticsPositive">0</strong><span>позитивних</span></div><div class="stat"><strong id="analyticsNeutral">0</strong><span>нейтральних</span></div><div class="stat"><strong id="analyticsNegative">0</strong><span>негативних</span></div><div class="stat"><strong id="analyticsPending">0</strong><span>на модерації</span></div><div class="stat"><strong id="analyticsApproved">0</strong><span>підтверджено</span></div><div class="stat"><strong id="analyticsRejected">0</strong><span>відхилено</span></div><div class="stat"><strong id="analyticsAvg">0%</strong><span>середня позитивність</span></div></div><h3>Візуальний розподіл</h3><p>Позитивні</p><div class="progress"><div id="barPositive" style="width:0%"></div></div><p>Нейтральні</p><div class="progress yellow"><div id="barNeutral" style="width:0%"></div></div>
+<p>Негативні</p><div class="progress red"><div id="barNegative" style="width:0%"></div></div>
+<h3>Графіки</h3>
+<div class="stats-wide">
+  <div class="card" style="box-shadow:none;border:1px solid var(--border)">
+    <h3>Тональність відгуків</h3>
+    <canvas id="sentimentChart"></canvas>
+  </div>
+  <div class="card" style="box-shadow:none;border:1px solid var(--border)">
+    <h3>Статуси модерації</h3>
+    <canvas id="moderationChart"></canvas>
+  </div>
+</div>
+</div></section>
+<section id="auth" class="hidden"><div class="card"><h2>Вхід у систему</h2><div class="auth-grid"><input id="loginEmail" placeholder="Email" value="oleg@example.com"><input id="loginPassword" type="password" placeholder="Пароль" value="123456"></div><button class="btn" style="margin-top:12px" onclick="login()">Увійти</button><div id="loginMessage" class="message"></div><h2>Реєстрація</h2><div class="auth-grid"><input id="regName" placeholder="Ім'я"><input id="regEmail" placeholder="Email"><input id="regPassword" type="password" placeholder="Пароль"><select id="regRole"><option value="user">user</option><option value="moderator">moderator</option><option value="admin">admin</option></select></div><button class="btn btn-outline" style="margin-top:12px" onclick="register()">Зареєструватися</button><div id="registerMessage" class="message"></div></div></section>
+<section id="profile" class="hidden"><div class="card"><h2>Мій профіль</h2><div class="profile-grid"><div class="stat"><strong id="profileName">-</strong><span>ім'я користувача</span></div><div class="stat"><strong id="profileRole">-</strong><span>роль</span></div><div class="stat"><strong id="profileReviewsCount">0</strong><span>моїх відгуків</span></div><div class="stat"><strong id="profileApprovedCount">0</strong><span>підтверджено</span></div></div><h3>Рекомендовано для вас</h3><button class="btn btn-outline" onclick="loadRecommendations()">Оновити рекомендації</button><div class="grid" id="recommendations"></div><h3>Мої відгуки</h3><button class="btn btn-outline" onclick="loadProfile()">Оновити профіль</button><div id="profileReviews"></div></div></section>
+<section id="admin" class="hidden"><div class="card"><h2>Керування фільмами</h2><p class="muted">Доступно для ролі admin. Можна додавати фільми вручну або підтягувати їх через TMDb API з реальними жанрами та постерами.</p><h3>Пошук фільмів онлайн (TMDb)</h3><div class="form-row"><input id="tmdbQuery" placeholder="Наприклад: Dune, Interstellar, Matrix"><button class="btn" onclick="searchTMDB()">Знайти онлайн</button></div><div id="tmdbMessage" class="message"></div><div id="tmdbResults"></div><h3>Додати фільм вручну</h3><div class="admin-grid"><input id="newTitle" placeholder="Назва фільму"><input id="newGenre" placeholder="Жанр"><input id="newYear" type="number" placeholder="Рік"><input id="newDescription" placeholder="Опис"><input id="newPoster" placeholder="URL постера"></div><button class="btn" style="margin-top:12px" onclick="addMovie()">Додати фільм</button><div id="adminMessage" class="message"></div>
+<h3>Редагування фільму</h3>
+<div id="editMovieBox" class="card hidden" style="box-shadow:none;border:1px solid var(--border);margin-top:12px">
+  <input id="editMovieId" type="hidden">
+  <div class="admin-grid">
+    <input id="editTitle" placeholder="Назва фільму">
+    <input id="editGenre" placeholder="Жанр">
+    <input id="editYear" type="number" placeholder="Рік">
+    <input id="editDescription" placeholder="Опис">
+    <input id="editPoster" placeholder="URL постера">
+  </div>
+  <button class="btn" style="margin-top:12px" onclick="saveMovieEdit()">Зберегти зміни</button>
+  <button class="btn btn-outline" style="margin-top:12px" onclick="cancelMovieEdit()">Скасувати</button>
+</div>
+<h3>Список фільмів</h3><div id="adminMovieList"></div></div></section>
+<section id="moderation" class="hidden"><div class="card"><h2>Панель модератора</h2><p class="muted">Доступно для ролі moderator або admin.</p><button class="btn btn-outline" onclick="loadModeration()">Оновити список</button><div id="moderationList"></div></div></section>
+</main>
+<script>
+const API="http://127.0.0.1:8000";let selectedMovieId=null;let moviesCache=[];let currentUser=JSON.parse(localStorage.getItem("currentUser")||"null");
+function showMessage(id,text,type="ok"){const el=document.getElementById(id);el.className="message "+type;el.textContent=text;setTimeout(()=>{el.className="message"},4000)}
+function updateUserUI(){document.getElementById("userPanel").textContent=currentUser?`${currentUser.name} (${currentUser.role})`:"Гість";document.getElementById("profileNav").classList.toggle("hidden",!currentUser);document.getElementById("adminNav").classList.toggle("hidden",!(currentUser&&currentUser.role==="admin"));document.getElementById("moderationNav").classList.toggle("hidden",!(currentUser&&(currentUser.role==="moderator"||currentUser.role==="admin")));const r=document.getElementById("reviewUserInfo");if(r)r.textContent=currentUser?`Відгук буде додано від імені: ${currentUser.name}`:"Увійдіть у систему, щоб залишити відгук."}
+function showPage(id){if(id==="profile"&&!currentUser)return alert("Спочатку увійдіть у систему");if(id==="admin"&&!(currentUser&&currentUser.role==="admin"))return alert("Потрібна роль admin");if(id==="moderation"&&!(currentUser&&(currentUser.role==="moderator"||currentUser.role==="admin")))return alert("Потрібна роль moderator або admin");["home","auth","profile","admin","moderation","analytics"].forEach(x=>document.getElementById(x).classList.add("hidden"));document.getElementById(id).classList.remove("hidden");if(id==="moderation")loadModeration();if(id==="admin")renderAdminMovies();if(id==="profile")loadProfile();if(id==="analytics")loadAnalytics();updateUserUI()}
+function movieCode(title){return title.split(" ").map(w=>w[0]).join("").slice(0,4).toUpperCase()}
+function posterHtml(movie){return movie.poster_url?`<img src="${movie.poster_url}" alt="${movie.title}">`:movieCode(movie.title)}
+function analysisHtml(r){const p=r.positivity_percent??50;return `<strong>Аналіз:</strong> ${r.sentiment||"-"}<br><strong>Емоційний бал:</strong> ${r.score??0}/10<br><strong>Позитивність:</strong> ${p}%<div class="progress"><div style="width:${p}%"></div></div><strong>Ключові слова:</strong> ${r.keywords||"-"}`}
+async function apiFetch(url,options={}){const res=await fetch(API+url,options);if(!res.ok)throw new Error(await res.text());return await res.json()}
+async function seedData(){try{await apiFetch("/seed",{method:"POST"});await apiFetch("/analysis/recalculate",{method:"POST"});await loadMovies();await loadAnalytics();showMessage("mainMessage","Тестові дані додано або вже існують у базі. Аналіз оновлено.")}catch(e){showMessage("mainMessage","Помилка: "+e.message,"err")}}
+async function seedPopularTMDB(){
+  try{
+    showMessage("mainMessage","Завантажую популярні фільми з TMDb...");
+    const result=await apiFetch("/tmdb/seed-popular",{method:"POST"});
+    await loadMovies();
+    showMessage("mainMessage",`TMDb заповнення виконано. Додано: ${result.added}, отримано: ${result.total_loaded}.`);
+  }catch(e){
+    showMessage("mainMessage","Помилка TMDb заповнення. Перевір API ключ та інтернет.","err");
+  }
+}
+
+async function login(){try{currentUser=await apiFetch("/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:document.getElementById("loginEmail").value,password:document.getElementById("loginPassword").value})});localStorage.setItem("currentUser",JSON.stringify(currentUser));updateUserUI();showMessage("loginMessage","Вхід виконано успішно.");setTimeout(()=>showPage("home"),800)}catch(e){showMessage("loginMessage","Неправильний email або пароль.","err")}}
+async function register(){try{const user=await apiFetch("/users",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:document.getElementById("regName").value,email:document.getElementById("regEmail").value,password:document.getElementById("regPassword").value,role:document.getElementById("regRole").value})});currentUser=user;localStorage.setItem("currentUser",JSON.stringify(user));updateUserUI();showMessage("registerMessage","Користувача створено, вхід виконано.")}catch(e){showMessage("registerMessage","Помилка реєстрації.","err")}}
+function logout(){currentUser=null;localStorage.removeItem("currentUser");updateUserUI();showPage("home")}
+async function loadMovies(){try{moviesCache=await apiFetch("/movies");renderMovies();renderAdminMovies();await loadStats()}catch(e){showMessage("mainMessage","Не вдалося завантажити фільми. Перевір backend.","err")}}
+function renderMovies(){const q=document.getElementById("searchInput").value.toLowerCase().trim();const genre=document.getElementById("genreFilter").value;const container=document.getElementById("movies");container.innerHTML="";const filtered=moviesCache.filter(m=>m.title.toLowerCase().includes(q)&&(genre==="all"||m.genre===genre));if(filtered.length===0){container.innerHTML="<p class='muted'>Фільми не знайдено. Натисніть «Додати тестові дані».</p>";return}filtered.forEach(movie=>{container.appendChild(movieCard(movie,false))})}
+function movieCard(movie,isRecommendation){const div=document.createElement("div");div.className="movie";div.innerHTML=`<div class="poster">${posterHtml(movie)}</div><div class="movie-content"><h3>${movie.title}</h3><span class="badge">${movie.genre}</span><div class="muted">${isRecommendation&&movie.recommendation_reason?movie.recommendation_reason:(movie.description||"")}</div><div><strong>Рік:</strong> ${movie.year||"-"}</div><div><strong>Рейтинг:</strong> ${movie.average_rating||0}/10</div><button class="btn" onclick="openMovie(${movie.id_movie})">Відкрити</button></div>`;return div}
+async function openMovie(id){selectedMovieId=id;const movie=await apiFetch("/movies/"+id);document.getElementById("movieDetails").classList.remove("hidden");document.getElementById("movieTitle").textContent=movie.title;document.getElementById("movieGenre").textContent=movie.genre;document.getElementById("movieDescription").textContent=movie.description||"";document.getElementById("movieYear").textContent=movie.year||"-";document.getElementById("movieRating").textContent=(movie.average_rating||0)+"/10";document.getElementById("moviePoster").innerHTML=posterHtml(movie);await loadReviews(id);updateUserUI();document.getElementById("movieDetails").scrollIntoView({behavior:"smooth"})}
+async function loadReviews(movieId){const reviews=await apiFetch("/movies/"+movieId+"/reviews");const container=document.getElementById("reviews");container.innerHTML=reviews.length?"":"<p class='muted'>Поки що відгуків немає.</p>";reviews.forEach(r=>{const cls=r.status==="approved"?"approved":r.status==="rejected"?"rejected":"pending";const div=document.createElement("div");div.className="review";div.innerHTML=`<div class="review-meta"><strong>Користувач #${r.id_user}</strong><span class="status ${cls}">${r.status}</span></div><p>${r.text}</p><div class="analysis-box">${analysisHtml(r)}</div>`;container.appendChild(div)})}
+async function addReview(){if(!currentUser)return showMessage("reviewMessage","Спочатку увійдіть у систему.","err");if(!selectedMovieId)return showMessage("reviewMessage","Спочатку відкрийте фільм.","err");const text=document.getElementById("reviewText").value.trim();const rating=Number(document.getElementById("rating").value);if(!text)return showMessage("reviewMessage","Введіть текст відгуку.","err");try{await apiFetch("/reviews",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,rating,id_user:currentUser.id_user,id_movie:selectedMovieId})});document.getElementById("reviewText").value="";showMessage("reviewMessage","Відгук додано, оцінку збережено, текст проаналізовано.");await openMovie(selectedMovieId);await loadMovies();await loadAnalytics();if(currentUser)loadRecommendations()}catch(e){showMessage("reviewMessage","Помилка додавання.","err")}}
+async function loadProfile(){if(!currentUser)return;document.getElementById("profileName").textContent=currentUser.name;document.getElementById("profileRole").textContent=currentUser.role;const reviews=await apiFetch("/users/"+currentUser.id_user+"/reviews");document.getElementById("profileReviewsCount").textContent=reviews.length;document.getElementById("profileApprovedCount").textContent=reviews.filter(r=>r.status==="approved").length;const c=document.getElementById("profileReviews");c.innerHTML=reviews.length?"":"<p class='muted'>Ви ще не залишали відгуків.</p>";reviews.forEach(r=>{const cls=r.status==="approved"?"approved":r.status==="rejected"?"rejected":"pending";const div=document.createElement("div");div.className="review";div.innerHTML=`<div class="review-meta"><strong>${r.movie_title||"Фільм"}</strong><span class="status ${cls}">${r.status}</span></div><p>${r.text}</p><div class="analysis-box">${analysisHtml(r)}</div>`;c.appendChild(div)});await loadRecommendations()}
+async function loadRecommendations(){if(!currentUser)return;const data=await apiFetch("/users/"+currentUser.id_user+"/recommendations");const box=document.getElementById("recommendations");box.innerHTML=data.length?"":"<p class='muted'>Поки що немає рекомендацій. Оцініть кілька фільмів.</p>";data.forEach(m=>box.appendChild(movieCard(m,true)))}
+async function addMovie(){if(!(currentUser&&currentUser.role==="admin"))return alert("Потрібна роль admin");const title=document.getElementById("newTitle").value.trim();const genre=document.getElementById("newGenre").value.trim();const year=Number(document.getElementById("newYear").value);const description=document.getElementById("newDescription").value.trim();const poster_url=document.getElementById("newPoster").value.trim()||null;if(!title||!genre)return showMessage("adminMessage","Вкажіть назву та жанр.","err");try{await apiFetch("/movies",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,genre,year,description,poster_url})});["newTitle","newGenre","newYear","newDescription","newPoster"].forEach(id=>document.getElementById(id).value="");showMessage("adminMessage","Фільм додано до каталогу.");await loadMovies()}catch(e){showMessage("adminMessage","Помилка додавання фільму.","err")}}
+async function searchTMDB(){if(!(currentUser&&currentUser.role==="admin"))return alert("Потрібна роль admin");const q=document.getElementById("tmdbQuery").value.trim();if(!q)return showMessage("tmdbMessage","Введіть назву фільму.","err");try{const data=await apiFetch("/tmdb/search?query="+encodeURIComponent(q));const box=document.getElementById("tmdbResults");box.innerHTML=data.length?"":"<p class='muted'>Нічого не знайдено.</p>";data.forEach(m=>{const div=document.createElement("div");div.className="review tmdb-result";div.innerHTML=`${m.poster_url?`<img src="${m.poster_url}" alt="">`:`<div class="tmdb-poster-empty">TMDb</div>`}<div><strong>${m.title} ${m.year?`(${m.year})`:""}</strong><p class="muted">${m.description||""}</p><button class="btn" onclick='addFromTMDB(${JSON.stringify(m).replace(/'/g,"&#39;")})'>Додати в каталог</button></div>`;box.appendChild(div)});showMessage("tmdbMessage","Пошук виконано.")}catch(e){showMessage("tmdbMessage","Помилка пошуку TMDb. Перевір API ключ.","err")}}
+async function addFromTMDB(movie){try{await apiFetch("/movies",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:movie.title,genre:movie.genre||"Фільм",description:movie.description,year:movie.year,poster_url:movie.poster_url})});showMessage("tmdbMessage","Фільм додано в каталог разом із постером.");await loadMovies()}catch(e){showMessage("tmdbMessage","Помилка додавання фільму.","err")}}
+function renderAdminMovies(){const container=document.getElementById("adminMovieList");if(!container)return;container.innerHTML="";moviesCache.forEach(m=>{const div=document.createElement("div");div.className="review";div.innerHTML=`<strong>${m.title}</strong> <span class="badge">${m.genre}</span><p class="muted">${m.description||""}</p><button class="btn btn-outline" onclick="startMovieEdit(${m.id_movie})">Редагувати</button> <button class="btn btn-danger" onclick="deleteMovie(${m.id_movie})">Видалити</button>`;container.appendChild(div)})}
+
+function startMovieEdit(id){
+  if(!(currentUser&&currentUser.role==="admin"))return alert("Потрібна роль admin");
+  const movie=moviesCache.find(m=>m.id_movie===id);
+  if(!movie)return alert("Фільм не знайдено");
+  document.getElementById("editMovieBox").classList.remove("hidden");
+  document.getElementById("editMovieId").value=movie.id_movie;
+  document.getElementById("editTitle").value=movie.title||"";
+  document.getElementById("editGenre").value=movie.genre||"";
+  document.getElementById("editYear").value=movie.year||"";
+  document.getElementById("editDescription").value=movie.description||"";
+  document.getElementById("editPoster").value=movie.poster_url||"";
+  document.getElementById("editMovieBox").scrollIntoView({behavior:"smooth"});
+}
+function cancelMovieEdit(){
+  document.getElementById("editMovieBox").classList.add("hidden");
+}
+async function saveMovieEdit(){
+  if(!(currentUser&&currentUser.role==="admin"))return alert("Потрібна роль admin");
+  const id=Number(document.getElementById("editMovieId").value);
+  const title=document.getElementById("editTitle").value.trim();
+  const genre=document.getElementById("editGenre").value.trim();
+  const year=Number(document.getElementById("editYear").value);
+  const description=document.getElementById("editDescription").value.trim();
+  const poster_url=document.getElementById("editPoster").value.trim()||null;
+  if(!id||!title||!genre)return showMessage("adminMessage","Вкажіть назву та жанр для редагування.","err");
+  try{
+    await apiFetch("/movies/"+id,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,genre,year,description,poster_url})});
+    showMessage("adminMessage","Фільм оновлено.");
+    cancelMovieEdit();
+    await loadMovies();
+    if(selectedMovieId===id)await openMovie(id);
+  }catch(e){
+    showMessage("adminMessage","Помилка редагування фільму.","err");
+  }
+}
+
+async function deleteMovie(id){if(!(currentUser&&currentUser.role==="admin"))return alert("Потрібна роль admin");if(!confirm("Видалити фільм разом з його відгуками та рейтингами?"))return;try{await apiFetch("/movies/"+id,{method:"DELETE"});showMessage("adminMessage","Фільм видалено.");await loadMovies();if(currentUser)loadRecommendations()}catch(e){showMessage("adminMessage","Помилка видалення.","err")}}
+async function loadModeration(){const container=document.getElementById("moderationList");const reviews=await apiFetch("/reviews");container.innerHTML=reviews.length?"":"<p class='muted'>Відгуків для модерації ще немає.</p>";reviews.forEach(r=>{const cls=r.status==="approved"?"approved":r.status==="rejected"?"rejected":"pending";const div=document.createElement("div");div.className="review";div.innerHTML=`<div class="review-meta"><strong>Відгук #${r.id_review}</strong><span class="status ${cls}">${r.status}</span></div><p>${r.text}</p><div class="analysis-box">${analysisHtml(r)}</div><button class="btn btn-success" onclick="moderate(${r.id_review}, 'approved')">Підтвердити</button> <button class="btn btn-danger" onclick="moderate(${r.id_review}, 'rejected')">Відхилити</button>`;container.appendChild(div)});await loadStats()}
+async function moderate(reviewId,status){if(!(currentUser&&(currentUser.role==="moderator"||currentUser.role==="admin")))return alert("Потрібна роль moderator або admin");await apiFetch("/reviews/"+reviewId+"/moderate",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status,comment:status==="approved"?"Відгук підтверджено":"Відгук відхилено",id_moderator:currentUser.id_user})});await loadModeration();await loadAnalytics();if(selectedMovieId)await loadReviews(selectedMovieId);if(currentUser)loadProfile()}
+let sentimentChartInstance=null;
+let moderationChartInstance=null;
+function renderCharts(s){
+  if(typeof Chart==="undefined")return;
+  const sentimentCanvas=document.getElementById("sentimentChart");
+  const moderationCanvas=document.getElementById("moderationChart");
+  if(!sentimentCanvas||!moderationCanvas)return;
+  if(sentimentChartInstance)sentimentChartInstance.destroy();
+  if(moderationChartInstance)moderationChartInstance.destroy();
+  sentimentChartInstance=new Chart(sentimentCanvas,{
+    type:"doughnut",
+    data:{
+      labels:["Позитивні","Нейтральні","Негативні"],
+      datasets:[{data:[s.positive,s.neutral,s.negative]}]
+    },
+    options:{responsive:true,plugins:{legend:{position:"bottom"}}}
+  });
+  moderationChartInstance=new Chart(moderationCanvas,{
+    type:"bar",
+    data:{
+      labels:["Pending","Approved","Rejected"],
+      datasets:[{label:"Кількість відгуків",data:[s.pending,s.approved,s.rejected]}]
+    },
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
+  });
+}
+async function loadAnalytics(){try{const s=await apiFetch("/stats/reviews");document.getElementById("analyticsTotal").textContent=s.total;document.getElementById("analyticsPositive").textContent=s.positive;document.getElementById("analyticsNeutral").textContent=s.neutral;document.getElementById("analyticsNegative").textContent=s.negative;document.getElementById("analyticsPending").textContent=s.pending;document.getElementById("analyticsApproved").textContent=s.approved;document.getElementById("analyticsRejected").textContent=s.rejected;document.getElementById("analyticsAvg").textContent=s.average_positivity+"%";const total=s.total||1;document.getElementById("barPositive").style.width=(s.positive/total*100)+"%";document.getElementById("barNeutral").style.width=(s.neutral/total*100)+"%";document.getElementById("barNegative").style.width=(s.negative/total*100)+"%";renderCharts(s)}catch(e){}}
+async function loadStats(){try{const movies=await apiFetch("/movies");const reviews=await apiFetch("/reviews");document.getElementById("statMovies").textContent=movies.length;document.getElementById("statReviews").textContent=reviews.length;const ratings=movies.map(m=>Number(m.average_rating||0)).filter(v=>v>0);document.getElementById("statRating").textContent=ratings.length?(ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1):0;document.getElementById("statPending").textContent=reviews.filter(r=>r.status==="pending").length;await loadAnalytics()}catch(e){}}
+updateUserUI();loadMovies();
+</script>
+</body>
+</html>
