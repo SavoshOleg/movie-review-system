@@ -1,91 +1,119 @@
-# Movie Review System
+# 🎬 MovieRate — Система аналізу відгуків та рейтингів фільмів
 
-Дипломний проєкт: **Програмне забезпечення системи аналізу користувацьких відгуків з інтерактивною системою рейтингів для кіноглядачів**.
+## 📌 Опис проєкту
 
-## Стек технологій
+MovieRate — це веб-застосунок для аналізу користувацьких відгуків та рейтингів фільмів.
+Система дозволяє переглядати фільми, додавати відгуки, оцінювати їх та отримувати статистику.
 
-- Backend: Python + FastAPI
-- Database: PostgreSQL
-- Frontend: HTML / CSS / JavaScript
-- ORM: SQLAlchemy
+Проєкт реалізований у вигляді клієнт-серверної архітектури з використанням сучасних технологій.
 
-## Структура проєкту
+---
 
-```text
-movie-review-system-full/
-├── backend/
-│   ├── main.py
-│   ├── database.py
-│   ├── models.py
-│   ├── schemas.py
-│   ├── crud.py
-│   ├── utils.py
-│   ├── requirements.txt
-│   └── .env.example
-└── frontend/
-    └── index.html
+## 🚀 Основний функціонал
+
+* 📽 Перегляд каталогу фільмів
+* ⭐ Оцінювання фільмів (рейтинг)
+* 💬 Додавання відгуків
+* 🧠 Аналіз відгуків (емоційний бал)
+* 🔍 Пошук фільмів через TMDb API
+* 📊 Перегляд статистики
+* 🛠 Модерація контенту
+* 👤 Робота з користувачами
+
+---
+
+## 🧱 Архітектура
+
+Система побудована за клієнт-серверною моделлю:
+
+* **Frontend** — HTML, CSS, JavaScript
+* **Backend** — Python (FastAPI)
+* **База даних** — PostgreSQL
+* **Зовнішній API** — TMDb (The Movie Database)
+
+---
+
+## 🌐 Демо (онлайн)
+
+* 🔗 Frontend: https://movie-review-s.netlify.app
+* 🔗 Backend API: https://movie-review-backend-5op5.onrender.com
+* 🔗 API Docs: https://movie-review-backend-5op5.onrender.com/docs
+
+---
+
+## ⚙️ Встановлення (локально)
+
+### 1. Клонування репозиторію
+
+```bash
+git clone https://github.com/your-username/movie-review-system.git
+cd movie-review-system
 ```
 
-## Запуск
-
-### 1. Створити базу даних PostgreSQL
-
-Відкрийте pgAdmin або SQL Shell та виконайте:
-
-```sql
-CREATE DATABASE movie_reviews_db;
-```
-
-### 2. Налаштувати підключення
-
-У папці `backend` створіть файл `.env` на основі `.env.example`.
-
-Приклад:
-
-```text
-DATABASE_URL=postgresql://postgres:ВАШ_ПАРОЛЬ@localhost:5432/movie_reviews_db
-```
-
-### 3. Встановити залежності backend
+### 2. Backend
 
 ```bash
 cd backend
 python -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate   # Windows
 pip install -r requirements.txt
-```
-
-### 4. Запустити backend
-
-```bash
 uvicorn main:app --reload
 ```
 
-API буде доступний за адресою:
+### 3. Frontend
 
-```text
-http://127.0.0.1:8000
-```
+Відкрити файл:
 
-Документація API:
-
-```text
-http://127.0.0.1:8000/docs
-```
-
-### 5. Запустити frontend
-
-Відкрийте файл:
-
-```text
+```bash
 frontend/index.html
 ```
 
-у браузері.
+---
 
-### 6. Почати роботу
+## 🔑 Налаштування середовища
 
-1. Натисніть кнопку **Додати тестові дані**.
-2. Відкрийте фільм.
-3. Додайте відгук.
-4. Перейдіть у **Модерація** та змініть статус відгуку.
+Створи файл `.env` у папці backend:
+
+```env
+DATABASE_URL=your_database_url
+TMDB_API_KEY=your_tmdb_api_key
+```
+
+---
+
+## 📊 Основні API endpoints
+
+* `GET /tmdb/search` — пошук фільмів
+* `GET /tmdb/popular` — популярні фільми
+* `POST /tmdb/seed-popular` — додати популярні фільми
+* `POST /seed` — заповнити тестові дані
+* `GET /stats/reviews` — статистика
+* `POST /analysis/recalculate` — аналіз відгуків
+
+---
+
+## 🛠 Технології
+
+* FastAPI
+* PostgreSQL
+* SQLAlchemy
+* JavaScript (Vanilla)
+* HTML/CSS
+* Chart.js
+
+---
+
+## 👨‍💻 Автор
+
+Савош Олег
+Спеціальність: Інженерія програмного забезпечення
+НУБіП України
+
+---
+
+## 📌 Примітка
+
+Проєкт створено в рамках дипломної роботи.
+Може бути розширений.
+
+---
