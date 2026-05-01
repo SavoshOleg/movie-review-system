@@ -22,10 +22,27 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
 
-def analyze_sentiment(text: str) -> tuple[str, str, int, int]:
+def analyze_sentiment(text: str, rating: int | None = None) -> tuple[str, str, int, int]:
     lower_text = text.lower()
+
     score = 0
     found_keywords = []
+
+    # Обробка фраз із запереченням
+    neutral_positive_phrases = {
+        "не поганий": 1,
+        "непоганий": 1,
+        "не нудний": 1,
+        "не слабкий": 1,
+        "не жахливий": 1,
+        "не розчарував": 1
+    }
+
+    for phrase, value in neutral_positive_phrases.items():
+        if phrase in lower_text:
+            score += value
+            found_keywords.append(phrase)
+            lower_text = lower_text.replace(phrase, "")
 
     for word, value in POSITIVE_WORDS.items():
         if word in lower_text:
@@ -36,6 +53,17 @@ def analyze_sentiment(text: str) -> tuple[str, str, int, int]:
         if word in lower_text:
             score += value
             found_keywords.append(word)
+
+    # Додатково враховуємо числову оцінку користувача
+    if rating is not None:
+        if rating >= 9:
+            score += 2
+        elif rating >= 7:
+            score += 1
+        elif rating <= 3:
+            score -= 2
+        elif rating <= 5:
+            score -= 1
 
     words = re.findall(r"[а-яА-ЯіІїЇєЄґҐa-zA-Z]+", lower_text)
     normalized_score = max(-10, min(10, score))

@@ -104,7 +104,7 @@ def create_review_with_rating(db: Session, review: schemas.ReviewCreate):
     db_rating = models.Rating(rating=review.rating, id_user=review.id_user, id_movie=review.id_movie)
     db.add(db_rating)
 
-    sentiment, keywords, score, positivity_percent = analyze_sentiment(review.text)
+    sentiment, keywords, score, positivity_percent = analyze_sentiment(review.text, review.rating)
     db_analysis = models.Analysis(sentiment=sentiment, keywords=keywords, score=score, positivity_percent=positivity_percent, id_review=db_review.id_review)
     db.add(db_analysis)
 
@@ -157,15 +157,34 @@ def moderate_review(db: Session, review_id: int, data: schemas.ModerationUpdate)
 
 def recalculate_old_analysis(db: Session):
     reviews = db.query(models.Review).all()
+
     for review in reviews:
-        sentiment, keywords, score, positivity_percent = analyze_sentiment(review.text)
+        rating_obj = db.query(models.Rating).filter(
+            models.Rating.id_user == review.id_user,
+            models.Rating.id_movie == review.id_movie
+        ).first()
+
+        rating_value = rating_obj.rating if rating_obj else None
+
+        sentiment, keywords, score, positivity_percent = analyze_sentiment(
+            review.text,
+            rating_value
+        )
+
         if review.analysis:
             review.analysis.sentiment = sentiment
             review.analysis.keywords = keywords
             review.analysis.score = score
             review.analysis.positivity_percent = positivity_percent
         else:
-            db.add(models.Analysis(sentiment=sentiment, keywords=keywords, score=score, positivity_percent=positivity_percent, id_review=review.id_review))
+            db.add(models.Analysis(
+                sentiment=sentiment,
+                keywords=keywords,
+                score=score,
+                positivity_percent=positivity_percent,
+                id_review=review.id
+            ))
+
     db.commit()
 
 
